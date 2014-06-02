@@ -115,6 +115,16 @@ return the object instead, use C<focus>
 Return to the top of the zipper, zipping up all the data you've changed using
 C<call> and C<set>, and return the modified copy of the object.
 
+=head1 CAVEATS
+
+    18:46 <@haarg> and you'll want to document the caveats re: but
+    18:46 <@osfameron> which caveats?
+    18:47 <@haarg> such as only working with hashref based objects, not supporting things with init_arg
+    18:47 <@haarg> re-applying coercions
+    18:48 <@haarg> running things through BUILDARGS again
+
+See https://github.com/haarg/MooX-Clone/ for a Moosier implementation of ->but!
+
 =head1 SEE ALSO
 
 =over 4
