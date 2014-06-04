@@ -148,6 +148,8 @@ Zippers in Haskell. L<http://learnyouahaskell.com/zippers> for example.
 package MooX::Role::Immutable;
 use Moo::Role;
 
+use Carp qw(carp croak);
+
 sub but {
     my $self = shift;
     return $self->new(%$self, @_);
@@ -196,6 +198,31 @@ sub set {
     my ($self, %args) = @_;
     return $self->but(
         head => $self->head->but(%args)
+    );
+}
+
+sub set_hashref {
+    my ($self, $attr, %args) = @_;
+	my $a = $self->head->$attr;
+	croak("$attr is not a HASH ref")
+	  unless ref($a) eq 'HASH';
+	my %a = (%$a, %args);
+	return $self->but(
+        head => $self->head->but($attr => {%a}),
+    );
+}
+
+sub unset_hashref {
+    my ($self, $attr, @keys) = @_;
+	my $a = $self->head->$attr;
+	croak("$attr is not a HASH ref")
+	  unless ref($a) eq 'HASH';
+	my %a = %$a;
+	foreach my $k (@keys) {
+	  delete $a{$k};
+	}
+	return $self->but(
+        head => $self->head->but($attr => {%a}),
     );
 }
 
