@@ -148,6 +148,8 @@ Zippers in Haskell. L<http://learnyouahaskell.com/zippers> for example.
 package MooX::Role::Immutable;
 use Moo::Role;
 
+use Carp qw(carp croak);
+
 sub but {
     my $self = shift;
     return $self->new(%$self, @_);
