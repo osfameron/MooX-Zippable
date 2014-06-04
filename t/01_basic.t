@@ -89,9 +89,9 @@ subtest "Test callback" => sub {
     my $struct = $struct->traverse
         # ->set(number => 16)
         ->call(add_number => 15)
-        ->go('child')->callback($add_number => 10)
-        ->go('child')->callback($add_number => 5)
-        ->go('child')->callback($add_number => 1)
+        ->go('child')->call($add_number => 10)
+        ->go('child')->call($add_number => 5)
+        ->go('child')->call($add_number => 1)
         ->focus;
 
     is_deeply $struct,

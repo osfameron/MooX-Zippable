@@ -186,15 +186,6 @@ sub call {
     );
 }
 
-sub callback {
-    my ($self, $callback, @args) = @_;
-	croak("callback must be a CODE ref")
-	  unless ref($callback) eq 'CODE';
-    return $self->but(
-        head => $callback->($self->head,@args),
-    );
-}
-
 sub set {
     my ($self, %args) = @_;
     return $self->but(
