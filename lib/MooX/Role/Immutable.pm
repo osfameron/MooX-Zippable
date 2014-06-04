@@ -138,6 +138,8 @@ Zippers in Haskell. L<http://learnyouahaskell.com/zippers> for example.
 package MooX::Role::Immutable;
 use Moo::Role;
 
+use Carp qw(carp croak);
+
 sub but {
     my $self = shift;
     return $self->new(%$self, @_);
@@ -177,8 +179,19 @@ sub go {
 
 sub call {
     my ($self, $method, @args) = @_;
+	croak("Head cannot $method")
+	  unless $self->head->can($method);
     return $self->but(
         head => $self->head->$method(@args),
+    );
+}
+
+sub callback {
+    my ($self, $callback, @args) = @_;
+	croak("callback must be a CODE ref")
+	  unless ref($callback) eq 'CODE';
+    return $self->but(
+        head => $callback->($self->head,@args),
     );
 }
 

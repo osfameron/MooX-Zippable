@@ -78,5 +78,34 @@ subtest "With zipper" => sub {
         }, 'Foo';
 };
 
+subtest "Test callback" => sub {
+
+    my $add_number = sub {
+	  my ($i, $num) = @_;
+	  return $i->but(
+        number => $i->number + $num,
+      );
+	};
+    my $struct = $struct->traverse
+        # ->set(number => 16)
+        ->call(add_number => 15)
+        ->go('child')->callback($add_number => 10)
+        ->go('child')->callback($add_number => 5)
+        ->go('child')->callback($add_number => 1)
+        ->focus;
+
+    is_deeply $struct,
+        bless { number => 16, child =>
+            bless { number => 12, child =>
+                bless {
+                    number => 8,
+                    child => bless {
+                        number => 5,
+                    }, 'Foo',
+                }, 'Foo'
+            }, 'Foo'
+        }, 'Foo';
+};
+
 
 done_testing;
