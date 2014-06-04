@@ -4,7 +4,7 @@ use Test::Most;
 {
     package Foo;
     use Moo;
-    with 'MooX::Role::Immutable';
+    with 'MooX::Zippable';
 
     has number => (
         is => 'ro',

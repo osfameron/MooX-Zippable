@@ -1,12 +1,12 @@
 =head1 NAME
 
-MooX::Role::Immutable - helpers for writing immutable code
+MooX::Zippable - helpers for writing immutable code
 
 =head1 SYNOPSIS
 
     package Foo;
     use Moo;
-    with 'MooX::Role::Immutable';
+    with 'MooX::Zippable';
 
     has foo   => ( isa => 'ro' );
     has child => ( isa => 'ro' );
@@ -36,7 +36,7 @@ Support for updating linked objects
 
 =head1 METHODS
 
-=head2 but( $attribute => $value, ... )
+=head2 C<but( $attribute =E<gt> $value, ... )>
 
 Returns a copy of the object, but with the specified attributes overridden.
 
@@ -48,6 +48,14 @@ destructively updating those references, right?)
 If that restriction hurts you, then you may wish to override C<but> (or port
 the feature from L<MooseX::Attribute::ChainedClone> which supports finer
 grained cloning).
+
+=head2 C<set_hashref( $attribute, $key =E<gt> $value, ...)>
+
+Modify a hashref attribute functionally, adding/overriding keys.
+
+=head2 C<unset_hashref( $attribute, $key, $key2, ...)>
+
+Mofify a hashref attribute functionally, removing keys.
 
 =head2 traverse
 
@@ -89,12 +97,12 @@ The zipper will take care of updating all the intermediate references.
 Traverses to an accessor of the object, keeping a breadcrumb trail back to the previous
 object, so that it knows how to zip all the data back up.
 
-=head3 C<$zipper-E<gt>set($accessor => $value)>
+=head3 C<$zipper-E<gt>set($accessor =E<gt> $value)>
 
 Seemingly "update" a field of the object.  In fact, behind the scenes, the zipper is
 calling C<but> and returning a copy of the object with the values updated.
 
-=head3 C<$zipper-E<gt>call($method => @args)>
+=head3 C<$zipper-E<gt>call($method =E<gt> @args)>
 
 Assumes that C<$method> returns a copy of the same object.  As with C<set>, you can
 imagine that C<call> is updating the object in place, but in fact behind the scenes
@@ -145,7 +153,7 @@ Zippers in Haskell. L<http://learnyouahaskell.com/zippers> for example.
 
 =cut
 
-package MooX::Role::Immutable;
+package MooX::Zippable;
 use Moo::Role;
 
 sub but {
@@ -161,7 +169,7 @@ sub traverse {
 
 package MooX::Zipper;
 use Moo;
-with 'MooX::Role::Immutable';
+with 'MooX::Zippable';
 use Types::Standard qw( ArrayRef );
 
 has head => (
