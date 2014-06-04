@@ -184,19 +184,35 @@ sub call {
     );
 }
 
-sub callback {
-    my ($self, $callback, @args) = @_;
-	croak("callback must be a CODE ref")
-	  unless ref($callback) eq 'CODE';
-    return $self->but(
-        head => $callback->($self->head,@args),
-    );
-}
-
 sub set {
     my ($self, %args) = @_;
     return $self->but(
         head => $self->head->but(%args)
+    );
+}
+
+sub set_hashref {
+    my ($self, $attr, %args) = @_;
+	my $a = $self->head->$attr;
+	croak("$attr is not a HASH ref")
+	  unless ref($a) eq 'HASH';
+	my %a = (%$a, %args);
+	return $self->but(
+        head => $self->head->but($attr => {%a}),
+    );
+}
+
+sub unset_hashref {
+    my ($self, $attr, @keys) = @_;
+	my $a = $self->head->$attr;
+	croak("$attr is not a HASH ref")
+	  unless ref($a) eq 'HASH';
+	my %a = %$a;
+	foreach my $k (@keys) {
+	  delete $a{$k};
+	}
+	return $self->but(
+        head => $self->head->but($attr => {%a}),
     );
 }
 

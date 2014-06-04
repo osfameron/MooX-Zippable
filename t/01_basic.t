@@ -1,25 +1,32 @@
-package Foo;
-use Moo;
-with 'MooX::Role::Immutable';
+use strictures;
+use Test::Most;
 
-has number => (
-    is => 'ro',
-);
+{
+    package Foo;
+    use Moo;
+    with 'MooX::Role::Immutable';
 
-has child => (
-    is => 'ro',
-);
-
-sub add_number {
-    my ($self, $add) = @_;
-    return $self->but(
-        number => $self->number + $add,
+    has number => (
+        is => 'ro',
     );
-}
 
-package main;
-use strict; use warnings;
-use Test::More;
+    has child => (
+        is => 'ro',
+    );
+
+    has hash => (
+        is => 'ro',
+        lazy => 1,
+        builder => sub {+{}},
+    );
+
+    sub add_number {
+        my ($self, $add) = @_;
+        return $self->but(
+            number => $self->number + $add,
+        );
+    }
+}
 
 my $struct = Foo->new(
     number => 1,
@@ -86,9 +93,10 @@ subtest "Test callback" => sub {
         number => $i->number + $num,
       );
 	};
+
     my $struct = $struct->traverse
         # ->set(number => 16)
-        ->call(add_number => 15)
+        ->call($add_number => 15)
         ->go('child')->call($add_number => 10)
         ->go('child')->call($add_number => 5)
         ->go('child')->call($add_number => 1)
@@ -105,6 +113,31 @@ subtest "Test callback" => sub {
                 }, 'Foo'
             }, 'Foo'
         }, 'Foo';
+};
+
+subtest "Test (?:un)?set_hash" => sub {
+
+    my $struct = $struct->traverse
+        ->set_hashref('hash', a => 'b', c => 'd')
+        ->go('child')->set_hashref('hash', b => 'c', d => 'a')
+        ->go('child')->set_hashref('hash', b => 'c', 'c' => 'd')->unset_hashref('hash', qw(b c))
+        ->go('child')->unset_hashref('hash',qw(foo bar))
+        ->focus;
+
+    eq_or_diff $struct,
+        (bless { number => 1, child =>
+            (bless { number => 2, child =>
+                (bless {
+                    number => 3,
+                    child => (bless {
+                        number => 4, hash => {},
+                    }, 'Foo'),
+                    hash => {},
+                }, 'Foo'),
+                hash => {qw(b c d a)},
+            }, 'Foo'),
+            hash => {qw(a b c d)},
+        }, 'Foo');
 };
 
 
