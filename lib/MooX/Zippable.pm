@@ -162,7 +162,9 @@ sub traverse {
 sub doTraverse {
     my ($self, $code) = @_;
     for ($self->traverse) {
-        return $code->()->focus;
+        my $zipper = $code->($_);
+        my $value = $zipper->focus;
+        return $value;
     }
 }
 
@@ -172,6 +174,7 @@ with 'MooX::Zippable';
 use Types::Standard qw( ArrayRef );
 use autobox HASH => 'MooX::Zippable::Hash';
 use autobox SCALAR => 'MooX::Zippable::Scalar';
+use autobox ARRAY => 'MooX::Zippable::Array';
 
 has head => (
     is => 'ro',
@@ -248,7 +251,7 @@ sub do {
     for ($self->head->traverse) {
         # localises to $_
         return $self->but(
-            head => $code->()->focus,
+            head => $code->($_)->focus,
         );
     }
 }
@@ -257,8 +260,6 @@ package MooX::Zippable::Native;
 use Carp qw(croak);
 use Moo::Role;
 with 'MooX::Zippable';
-
-sub call { croak "Can't call a method on a native value" }
 
 sub traverse {
     my ($self, %args) = @_;
@@ -273,6 +274,20 @@ use constant zipper_class => 'MooX::Zipper::Hash';
 sub but {
     my ($self, %args) = @_;
     return { %{$self}, %args };
+}
+
+package MooX::Zippable::Array;
+use Moo::Role;
+with 'MooX::Zippable::Native';
+
+use constant zipper_class => 'MooX::Zipper::Array';
+sub but {
+    my ($self, %args) = @_;
+    my @array = @$self;
+    for my $k (keys %args) {
+        $array[$k] = $args{$k};
+    }
+    return \@array;
 }
 
 package MooX::Zippable::Scalar;
@@ -300,6 +315,14 @@ use Moo;
 extends 'MooX::Zipper';
 with 'MooX::Zippable';
 
+sub go {
+    my ($self, $dir) = @_;
+    return $self->head->{$dir}->traverse(
+        dir => $dir,
+        zip => $self,
+    );
+}
+
 sub unset {
     my ($self, @keys) = @_;
     my %hash = %{ $self->head };
@@ -311,11 +334,62 @@ sub unset {
     );
 }
 
+package MooX::Zipper::Array;
+use Moo;
+extends 'MooX::Zipper';
+with 'MooX::Zippable';
+
 sub go {
     my ($self, $dir) = @_;
-    return $self->head->{$dir}->traverse(
+    return $self->head->[$dir]->traverse(
         dir => $dir,
         zip => $self,
+    );
+}
+
+sub push {
+    my ($self, @items) = @_;
+    return $self->but(
+        head => [ @{$self->head}, @items ]
+    )
+}
+
+sub unshift {
+    my ($self, @items) = @_;
+    return $self->but(
+        head => [ @items, @{$self->head} ]
+    )
+}
+
+# NB, possibly rename hash's unset to delete also?
+sub delete {
+    my ($self, @keys) = @_;
+    my @head = @{$self->head};
+    for my $k (sort { $b <=> $a } @keys) {
+        splice @head, $k, 1;
+    }
+    return $self->but(
+        head => \@head,
+    );
+}
+
+sub reverse {
+    my $self = shift;
+    return $self->but(
+        head => [ reverse @{$self->head} ]
+    );
+}
+
+sub mapDo {
+    my ($self, $code) = @_;
+    my @head = map { 
+            local $_ = $_->traverse;            
+            $code->($_)->focus;
+        } 
+        @{ $self->head };
+
+    return $self->but(
+        head => \@head,
     );
 }
 

@@ -1,5 +1,6 @@
 use strictures;
 use Test::Most;
+use Data::Dumper;
 
 {
     package Foo;
@@ -208,6 +209,37 @@ subtest "Dive" => sub {
     is $bar->hash->{foo}{bar}{baz}, 3, 'traverse hash set ok';
     is $baz->hash->{foo}{bar}{baz}, 4, 'traverse hash/scalar ok';
     is $qux->hash->{foo}{bar}{baz}, 5, 'replace whole hash ok';
+};
+
+{
+    package Arr;
+    use Moo;
+    with 'MooX::Zippable';
+
+    has arr => ( is => 'ro' );
+}
+
+subtest "Array" => sub {
+    my $arr = Arr->new( arr => [1,2,3,4,5] );
+
+    my $arr1 = $arr->doTraverse( sub { $_->go('arr')->set(2, 'YAY') });
+
+    is_deeply $arr1, Arr->new( arr => [1,2, 'YAY', 4,5] );
+
+    # slightly crazy and not especially compelling example
+    # of mapDo and of using a callback against a scalar context
+    my $arr2 = $arr->traverse->go('arr')
+        ->mapDo( sub { $_->call(sub { $_[0] * 2 } ) } )
+        ->focus;
+
+    is_deeply $arr2, Arr->new( arr => [2, 4, 6, 8, 10 ] );
+
+    my $arr3 = $arr->doTraverse( sub { $_->go('arr')->push(6) } );
+    is_deeply $arr3->arr, [1,2,3,4,5,6];
+
+    my $arr4 = $arr->doTraverse( sub { $_->go('arr')->delete(2) } );
+    is_deeply $arr4->arr, [1,2,4,5];
+
 };
 
 done_testing;
