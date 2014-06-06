@@ -164,4 +164,12 @@ subtest "Deeply into hash" => sub {
     is $bar->hash->{foo}{bar}{baz}, 3, 'traverse hash set ok';
 };
 
+subtest "Dive" => sub {
+    my $foo = Foo->new( hash => { foo => { bar => { baz => 2 } } } );
+    my $bar = $foo->traverse->dive(hash=>foo=>'bar')->set(baz=>3)->focus;
+
+    is $foo->hash->{foo}{bar}{baz}, 2, 'sanity check';
+    is $bar->hash->{foo}{bar}{baz}, 3, 'traverse hash set ok';
+};
+
 done_testing;

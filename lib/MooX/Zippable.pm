@@ -185,6 +185,15 @@ sub go {
     );
 }
 
+sub dive {
+    my ($self, @dirs) = @_;
+    my $zip = $self;
+    for my $dir (@dirs) {
+        $zip = $zip->go($dir);
+    }
+    return $zip;
+}
+
 sub call {
     my ($self, $method, @args) = @_;
     return $self->but(
