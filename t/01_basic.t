@@ -167,9 +167,13 @@ subtest "Deeply into hash" => sub {
 subtest "Dive" => sub {
     my $foo = Foo->new( hash => { foo => { bar => { baz => 2 } } } );
     my $bar = $foo->traverse->dive(hash=>foo=>'bar')->set(baz=>3)->focus;
+    my $baz = $foo->traverse->dive(hash=>foo=>bar=>'baz')->replace(4)->focus;
+    my $qux = $foo->traverse->dive(hash=>foo=>'bar')->replace({ baz => 5 })->focus;
 
     is $foo->hash->{foo}{bar}{baz}, 2, 'sanity check';
     is $bar->hash->{foo}{bar}{baz}, 3, 'traverse hash set ok';
+    is $baz->hash->{foo}{bar}{baz}, 4, 'traverse hash/scalar ok';
+    is $qux->hash->{foo}{bar}{baz}, 5, 'replace whole hash ok';
 };
 
 done_testing;

@@ -164,6 +164,7 @@ use Moo;
 with 'MooX::Zippable';
 use Types::Standard qw( ArrayRef );
 use autobox HASH => 'MooX::Zippable::Hash';
+use autobox SCALAR => 'MooX::Zippable::Scalar';
 
 has head => (
     is => 'ro',
@@ -208,6 +209,13 @@ sub set {
     );
 }
 
+sub replace {
+    my ($self, $new) = @_;
+    return $self->but(
+        head => $new,
+    );
+}
+
 sub up {
     my $self = shift;
     return $self->zip->but(
@@ -228,20 +236,45 @@ sub focus {
     $self->top->head;
 }
 
-package MooX::Zippable::Hash;
+package MooX::Zippable::Native;
 use Moo::Role;
 with 'MooX::Zippable';
 
+sub call { die "Can't call a method on a native value" }
+
+sub traverse {
+    my ($self, %args) = @_;
+    return $self->zipper_class->new( head => $self, %args );
+}
+
+package MooX::Zippable::Hash;
+use Moo::Role;
+with 'MooX::Zippable::Native';
+
+use constant zipper_class => 'MooX::Zipper::Hash';
 sub but {
     my ($self, %args) = @_;
     return { %{$self}, %args };
 }
 
-sub traverse {
-    my ($self, %args) = @_;
+package MooX::Zippable::Scalar;
+use Moo::Role;
+with 'MooX::Zippable::Native';
 
-    return MooX::Zipper::Hash->new( head => $self, %args );
+use constant zipper_class => 'MooX::Zipper::Scalar';
+sub but {
+    my ($self, $value) = @_;
+    return $value;
 }
+
+package MooX::Zipper::Scalar;
+use Moo;
+extends 'MooX::Zipper';
+with 'MooX::Zippable';
+
+sub go { die "Can't traverse a scalar" }
+
+sub set { die "Can't set a scalar key, perhaps you wanted to ->replace?" }
 
 package MooX::Zipper::Hash;
 use Moo;
