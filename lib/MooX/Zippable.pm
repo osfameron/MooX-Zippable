@@ -223,6 +223,11 @@ package MooX::Zippable::Hash;
 use Moo::Role;
 with 'MooX::Zippable';
 
+sub but {
+    my ($self, %args) = @_;
+    return { %{$self}, %args };
+}
+
 sub traverse {
     my ($self, %args) = @_;
 
@@ -233,13 +238,6 @@ package MooX::Zipper::Hash;
 use Moo;
 extends 'MooX::Zipper';
 with 'MooX::Zippable';
-
-sub set {
-    my ($self, %args) = @_;
-    return $self->but(
-        head => { %{$self->head}, %args },
-    );
-}
 
 sub unset {
     my ($self, @keys) = @_;
@@ -252,6 +250,13 @@ sub unset {
     );
 }
 
+sub go {
+    my ($self, $dir) = @_;
+    return $self->head->{$dir}->traverse(
+        dir => $dir,
+        zip => $self,
+    );
+}
 
 =head1 AUTHOR and LICENCE
 
