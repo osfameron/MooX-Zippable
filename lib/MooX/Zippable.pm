@@ -171,7 +171,6 @@ sub doTraverse {
 package MooX::Zipper;
 use Moo;
 with 'MooX::Zippable';
-use Types::Standard qw( ArrayRef );
 use autobox HASH => 'MooX::Zippable::Hash';
 use autobox SCALAR => 'MooX::Zippable::Scalar';
 use autobox ARRAY => 'MooX::Zippable::Array';
