@@ -118,10 +118,23 @@ subtest "Test callback" => sub {
 subtest "Test (?:un)?set_hash" => sub {
 
     my $struct = $struct->traverse
-        ->set_hashref('hash', a => 'b', c => 'd')
-        ->go('child')->set_hashref('hash', b => 'c', d => 'a')
-        ->go('child')->set_hashref('hash', b => 'c', 'c' => 'd')->unset_hashref('hash', qw(b c))
-        ->go('child')->unset_hashref('hash',qw(foo bar))
+        ->go('hash')
+            ->set(a => 'b', c => 'd')
+            ->up
+        ->go('child')
+            ->go('hash')
+                ->set(b => 'c', d => 'a')
+                ->up
+            ->go('child')
+                ->go('hash')
+                    ->set(b => 'c', 'c' => 'd')
+                    ->up
+                ->go('hash')
+                    ->unset(qw(b c))
+                    ->up
+                ->go('child')
+                    ->go('hash')
+                        ->unset(qw(foo bar))
         ->focus;
 
     eq_or_diff $struct,

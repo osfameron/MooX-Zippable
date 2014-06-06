@@ -49,14 +49,6 @@ If that restriction hurts you, then you may wish to override C<but> (or port
 the feature from L<MooseX::Attribute::ChainedClone> which supports finer
 grained cloning).
 
-=head2 C<set_hashref( $attribute, $key =E<gt> $value, ...)>
-
-Modify a hashref attribute functionally, adding/overriding keys.
-
-=head2 C<unset_hashref( $attribute, $key, $key2, ...)>
-
-Mofify a hashref attribute functionally, removing keys.
-
 =head2 traverse
 
 Returns a I<zipper> on this object.  You can use the zipper to descend into
@@ -162,15 +154,16 @@ sub but {
 }
 
 sub traverse {
-    my ($self, @traversals) = @_;
+    my ($self, %args) = @_;
 
-    return MooX::Zipper->new( head => $self );
+    return MooX::Zipper->new( head => $self, %args );
 }
 
 package MooX::Zipper;
 use Moo;
 with 'MooX::Zippable';
 use Types::Standard qw( ArrayRef );
+use autobox HASH => 'MooX::Zippable::Hash';
 
 has head => (
     is => 'ro',
@@ -186,8 +179,7 @@ has zip => (
 
 sub go {
     my ($self, $dir) = @_;
-    return $self->but(
-        head => $self->head->$dir,
+    return $self->head->$dir->traverse(
         dir => $dir,
         zip => $self,
     );
@@ -204,31 +196,6 @@ sub set {
     my ($self, %args) = @_;
     return $self->but(
         head => $self->head->but(%args)
-    );
-}
-
-sub set_hashref {
-    my ($self, $attr, %args) = @_;
-	my $a = $self->head->$attr;
-	croak("$attr is not a HASH ref")
-	  unless ref($a) eq 'HASH';
-	my %a = (%$a, %args);
-	return $self->but(
-        head => $self->head->but($attr => {%a}),
-    );
-}
-
-sub unset_hashref {
-    my ($self, $attr, @keys) = @_;
-	my $a = $self->head->$attr;
-	croak("$attr is not a HASH ref")
-	  unless ref($a) eq 'HASH';
-	my %a = %$a;
-	foreach my $k (@keys) {
-	  delete $a{$k};
-	}
-	return $self->but(
-        head => $self->head->but($attr => {%a}),
     );
 }
 
@@ -251,6 +218,40 @@ sub focus {
     my $self = shift;
     $self->top->head;
 }
+
+package MooX::Zippable::Hash;
+use Moo::Role;
+with 'MooX::Zippable';
+
+sub traverse {
+    my ($self, %args) = @_;
+
+    return MooX::Zipper::Hash->new( head => $self, %args );
+}
+
+package MooX::Zipper::Hash;
+use Moo;
+extends 'MooX::Zipper';
+with 'MooX::Zippable';
+
+sub set {
+    my ($self, %args) = @_;
+    return $self->but(
+        head => { %{$self->head}, %args },
+    );
+}
+
+sub unset {
+    my ($self, @keys) = @_;
+    my %hash = %{ $self->head };
+	foreach my $k (@keys) {
+	  delete $hash{$k};
+	}
+	return $self->but(
+        head => \%hash,
+    );
+}
+
 
 =head1 AUTHOR and LICENCE
 
