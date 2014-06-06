@@ -254,10 +254,11 @@ sub do {
 }
 
 package MooX::Zippable::Native;
+use Carp qw(croak);
 use Moo::Role;
 with 'MooX::Zippable';
 
-sub call { die "Can't call a method on a native value" }
+sub call { croak "Can't call a method on a native value" }
 
 sub traverse {
     my ($self, %args) = @_;
@@ -285,13 +286,14 @@ sub but {
 }
 
 package MooX::Zipper::Scalar;
+use Carp qw(croak);
 use Moo;
 extends 'MooX::Zipper';
 with 'MooX::Zippable';
 
-sub go { die "Can't traverse a scalar" }
+sub go { croak "Can't traverse a scalar" }
 
-sub set { die "Can't set a scalar key, perhaps you wanted to ->replace?" }
+sub set { croak "Can't set a scalar key, perhaps you wanted to ->replace?" }
 
 package MooX::Zipper::Hash;
 use Moo;
