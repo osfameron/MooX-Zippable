@@ -16,7 +16,6 @@ use Test::Most;
 
     has hash => (
         is => 'ro',
-        lazy => 1,
         builder => sub {+{}},
     );
 
@@ -49,17 +48,18 @@ subtest "Sanity check - the current way" => sub {
             ->but( child => $struct->child->child->add_number(5)
                 ->but( child => $struct->child->child->child->add_number(1))));
         
-    is_deeply $struct,
-        bless { number => 16, child =>
-            bless { number => 12, child =>
-                bless {
-                    number => 8,
-                    child => bless {
-                        number => 5,
-                    }, 'Foo',
-                }, 'Foo'
-            }, 'Foo'
-        }, 'Foo';
+    is_deeply $struct, Foo->new(
+        number => 16,
+        child => Foo->new(
+            number => 12,
+            child => Foo->new(
+                number => 8,
+                child => Foo->new(
+                    number => 5
+                )
+            )
+        )
+    );
 };
 
 subtest "With zipper" => sub {
@@ -72,17 +72,18 @@ subtest "With zipper" => sub {
         ->go('child')->call(add_number => 1)
         ->focus;
 
-    is_deeply $struct,
-        bless { number => 16, child =>
-            bless { number => 12, child =>
-                bless {
-                    number => 8,
-                    child => bless {
-                        number => 5,
-                    }, 'Foo',
-                }, 'Foo'
-            }, 'Foo'
-        }, 'Foo';
+    is_deeply $struct, Foo->new(
+        number => 16,
+        child => Foo->new(
+            number => 12,
+            child => Foo->new(
+                number => 8,
+                child => Foo->new(
+                    number => 5
+                )
+            )
+        )
+    );
 };
 
 subtest "Test callback" => sub {
@@ -102,17 +103,18 @@ subtest "Test callback" => sub {
         ->go('child')->call($add_number => 1)
         ->focus;
 
-    is_deeply $struct,
-        bless { number => 16, child =>
-            bless { number => 12, child =>
-                bless {
-                    number => 8,
-                    child => bless {
-                        number => 5,
-                    }, 'Foo',
-                }, 'Foo'
-            }, 'Foo'
-        }, 'Foo';
+    is_deeply $struct, Foo->new(
+        number => 16,
+        child => Foo->new(
+            number => 12,
+            child => Foo->new(
+                number => 8,
+                child => Foo->new(
+                    number => 5
+                )
+            )
+        )
+    );
 };
 
 subtest "Hash traversals" => sub {
@@ -153,12 +155,44 @@ subtest "Hash traversals" => sub {
         }, 'Foo');
 };
 
+subtest "Do block" => sub {
+    my $struct1 = $struct->traverse
+        ->dive('child', 'child')
+        ->do( sub { $_->go('child')->call(add_number => 1) } ) # implicit focus
+        ->call(add_number => 10)
+        ->focus;
+
+    my $struct2 = $struct->doTraverse(sub {
+        $_->dive('child', 'child')
+        ->call(add_number => 10)
+        ->go('child')->call(add_number => 1 )
+        # look ma, no ->focus!
+        });
+
+    my $expected = Foo->new(
+        number => 1,
+        child => Foo->new(
+            number => 2,
+            child => Foo->new(
+                number => 13,
+                child => Foo->new(
+                    number => 5,
+                )
+            )
+        )
+    );
+
+    is_deeply $struct1, $expected, 'implicit focus for do block';
+    is_deeply $struct2, $expected, 'implicit focus for doTraverse block';
+    
+};
+
 subtest "Deeply into hash" => sub {
     my $foo = Foo->new( hash => { foo => { bar => { baz => 2 } } } );
     my $bar = $foo->traverse
         ->go('hash')->go('foo')->go('bar')
-            ->set(baz => 3)
-            ->focus;
+        ->set(baz => 3)
+        ->focus;
 
     is $foo->hash->{foo}{bar}{baz}, 2, 'sanity check';
     is $bar->hash->{foo}{bar}{baz}, 3, 'traverse hash set ok';

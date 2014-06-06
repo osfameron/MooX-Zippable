@@ -159,6 +159,13 @@ sub traverse {
     return MooX::Zipper->new( head => $self, %args );
 }
 
+sub doTraverse {
+    my ($self, $code) = @_;
+    for ($self->traverse) {
+        return $code->()->focus;
+    }
+}
+
 package MooX::Zipper;
 use Moo;
 with 'MooX::Zippable';
@@ -234,6 +241,16 @@ sub top {
 sub focus {
     my $self = shift;
     $self->top->head;
+}
+
+sub do {
+    my ($self, $code) = @_;
+    for ($self->head->traverse) {
+        # localises to $_
+        return $self->but(
+            head => $code->()->focus,
+        );
+    }
 }
 
 package MooX::Zippable::Native;
