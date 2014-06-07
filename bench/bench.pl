@@ -7,7 +7,7 @@ We create a tree of 7 levels (255 elements) to do some typical manipulations.
 {
     package Tree;
     use Moo;
-    with 'MooX::Zippable';
+    with 'MooX::Zippable::BinaryTree';
     has value => ( is => 'rw' ); # for mutable testing
     has left => ( is => 'ro', predicate => 'has_left' );
     has right => ( is => 'ro', predicate => 'has_right' );
@@ -49,7 +49,7 @@ use Benchmark 'cmpthese';
 sub tree { Tree->fromList( 1..255 ) };
 my $mult10 = sub { $_[0]->but(value => $_[0]->value * 10) };
 
-=head1 Tast 1
+=head1 Task 1
 
 Multiply first 3 nodes by 10
 
@@ -74,10 +74,10 @@ sub t1_exp { Tree->fromList( 10, 20, 30, 4..255 ) }
 
 sub t1_zipper {
     return tree->traverse
-        ->dive( ('left') x 7 )
+        ->leftmost
         ->call($mult10)
-        ->up->call($mult10)
-        ->go('right')->call($mult10)
+        ->next->call($mult10)
+        ->next->call($mult10)
         ->focus;
 }
 
@@ -131,11 +131,8 @@ sub t2_exp { Tree->fromList( 10, 2..254, 2550 ) }
 
 sub t2_zipper {
     return tree->traverse
-        ->dive( ('left') x 7 )
-        ->call($mult10)
-        ->top
-        ->dive( ('right') x 7 )
-        ->call($mult10)
+        ->first->call($mult10)
+        ->last->call($mult10)
         ->focus;
 }
 
