@@ -4,47 +4,13 @@ We create a tree of 7 levels (255 elements) to do some typical manipulations.
 
 =cut
 
-{
-    package Tree;
-    use Moo;
-    with 'MooX::Zippable::BinaryTree';
-    has value => ( is => 'rw' ); # for mutable testing
-    has left => ( is => 'ro', predicate => 'has_left' );
-    has right => ( is => 'ro', predicate => 'has_right' );
-
-    sub leaves {
-        my $self = shift;
-        if ($self->has_left) {
-            return (
-                $self->left->leaves, 
-                $self->has_right ? $self->right->leaves : ()
-            );
-        }
-        elsif ($self->has_right) {
-            die "Unexpected case";
-        }
-        else {
-            return $self->value;
-        }
-    }
-
-    sub fromList {
-        my ($class, @list) = @_;
-
-        my $pivot = int((@list - 1) / 2);
-        $class->new(
-            value => $list[$pivot],
-            $pivot ? ( left => $class->fromList(@list[0..($pivot-1)]) ) : (),
-            ($pivot < $#list) ? (right => $class->fromList(@list[($pivot+1)..$#list])) : (),
-        );
-    }
-}
-
 use strictures;
 use Data::Dumper;
 use Test::More;
 use Storable 'dclone';
 use Benchmark 'cmpthese';
+use lib 't/lib';
+use Tree;
 
 sub tree { Tree->fromList( 1..255 ) };
 my $mult10 = sub { $_[0]->but(value => $_[0]->value * 10) };
