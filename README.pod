@@ -34,6 +34,13 @@ Support for updating linked objects
     say $foo->child->foo; # still 1
     say $bar->child->foo; # 2
 
+Alternative syntax:
+
+    my $bar = $foo->doTraverse( sub { $_
+        ->go('child')
+        ->set(foo => 2)
+        });
+
 =head1 METHODS
 
 =head2 C<but( $attribute =E<gt> $value, ... )>
@@ -48,14 +55,6 @@ destructively updating those references, right?)
 If that restriction hurts you, then you may wish to override C<but> (or port
 the feature from L<MooseX::Attribute::ChainedClone> which supports finer
 grained cloning).
-
-=head2 C<set_hashref( $attribute, $key =E<gt> $value, ...)>
-
-Modify a hashref attribute functionally, adding/overriding keys.
-
-=head2 C<unset_hashref( $attribute, $key, $key2, ...)>
-
-Mofify a hashref attribute functionally, removing keys.
 
 =head2 traverse
 
@@ -92,6 +91,23 @@ The zipper will take care of updating all the intermediate references.
         ->set( telephone => '01234 567 890' )
         ->focus;
 
+=head2 doTraverse
+
+You might dislike having to remember to write C<-E<gt>focus> at the end of
+every traversal chain.  Instead, you can use C<doTraverse> which takes a
+coderef, that gets passed the root zipper as C<$_> and its first arg.  With
+this we can rewrite the previous expression as:
+
+    my $employee2 = $employee->doTraverse( sub { $_
+        ->go('company')
+        ->go('address')
+        ->set( telephone => '01234 567 890' )
+        });
+
+=head2 Zipper methods
+
+All zippers have the following methods
+
 =head3 C<$zipper-E<gt>go($accessor)>
 
 Traverses to an accessor of the object, keeping a breadcrumb trail back to the previous
@@ -123,6 +139,13 @@ return the object instead, use C<focus>
 Return to the top of the zipper, zipping up all the data you've changed using
 C<call> and C<set>, and return the modified copy of the object.
 
+=head3 Other zipper methods
+
+It is possible to create zippers for specific classes.  Examples are supplied for
+perl's native Hash, Array, and Scalar types, using autobox.  See the classes for
+L<MooX::Zipper::Native>, L<MooX::Zipper::Hash>, L<MooX::Zipper::Array>,
+L<MooX::Zipper::Scalar> for details.
+
 =head1 CAVEATS
 
     18:46 <@haarg> and you'll want to document the caveats re: but
@@ -131,7 +154,7 @@ C<call> and C<set>, and return the modified copy of the object.
     18:47 <@haarg> re-applying coercions
     18:48 <@haarg> running things through BUILDARGS again
 
-See https://github.com/haarg/MooX-Clone/ for a Moosier implementation of ->but!
+See https://github.com/haarg/MooX-Clone/ for a Moo'ier implementation of ->but!
 
 =head1 SEE ALSO
 
