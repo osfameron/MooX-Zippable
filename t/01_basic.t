@@ -154,6 +154,8 @@ subtest "is_top" => sub {
     my $zip = $struct->traverse;
     ok $zip->is_top, 'is_top';
     ok ! $zip->go('child')->is_top, 'child is not top';
+
+    ok $zip->go('child')->go('child')->up(2)->is_top, 'up(2) gets us back to top';
 };
 
 done_testing;

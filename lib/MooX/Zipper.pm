@@ -56,11 +56,17 @@ sub replace {
 
 sub up {
     my $self = shift;
-    return $self->zip->but(
-        head => $self->zip->head->but(
-            $self->dir => $self->head
-        ),
-    );
+    my $count = shift || 1;
+    
+    my $zip = $self;
+    for (1..$count) {
+        $zip = $zip->zip->but(
+            head => $zip->zip->head->but(
+                $zip->dir => $zip->head
+            ),
+        );
+    }
+    return $zip;
 }
 
 sub top {
