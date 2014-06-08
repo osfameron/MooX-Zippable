@@ -2,8 +2,31 @@ package MooX::Zipper::BinaryTree;
 use Moo;
 extends 'MooX::Zipper';
 
-sub left { $_[0]->go('left') }
-sub right { $_[0]->go('right') }
+has gt => (
+    is => 'ro',
+    predicate => 'has_gt',
+);
+has lt => (
+    is => 'ro',
+    predicate => 'has_lt',
+);
+
+sub left {
+    my $self = shift;
+    $self->go('left')->but(
+        defined $self->gt ? (gt => $self->gt) : (),
+        lt => $self->head->value
+    );
+}
+
+sub right {
+    my $self = shift;
+    $self->go('right')->but(
+        gt => $self->head->value,
+        defined $self->lt ? (lt => $self->lt) : (),
+    );
+}
+
 sub first { $_[0]->top->leftmost }
 sub last { $_[0]->top->rightmost }
 
@@ -57,5 +80,20 @@ sub prev {
     return $zip->up; # on a right path;
 }
 
+sub find {
+    my ($self, $find) = @_;
+    my $cmp = $self->head->can('cmp') || sub { $_[0] cmp $_[1] };
+    return $self->up->find($find) if ($self->has_lt and $cmp->($self->lt, $find) < 0);
+    return $self->up->find($find) if ($self->has_gt and $cmp->($self->gt, $find) > 0);
+
+    my $cmpd = $cmp->($self->head->value, $find) or return $self;
+    if ($cmpd > 0 and $self->head->has_left) {
+        return $self->left->find($find);
+    }
+    if ($cmpd < 0 and $self->head->has_right) {
+        return $self->right->find($find);
+    }
+    return undef;
+}
 
 1;

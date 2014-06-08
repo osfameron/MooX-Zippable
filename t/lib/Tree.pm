@@ -5,6 +5,8 @@ has left => ( is => 'ro', predicate => 'has_left' );
 has right => ( is => 'ro', predicate => 'has_right' );
 with 'MooX::Zippable::BinaryTree';
 
+sub cmp { $_[0] <=> $_[1] }
+
 sub leaves {
     my $self = shift;
     if ($self->has_left) {

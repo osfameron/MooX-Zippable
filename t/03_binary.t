@@ -36,4 +36,14 @@ subtest 'modify' => sub {
     is_deeply $tree, Tree->fromList( 10,20,30, 4..255 );
 };
 
+subtest 'find' => sub {
+    my $zip = tree->traverse;
+    for (20, 255, 1, 100) {
+        $zip = $zip->find($_);
+        is $zip->head->value, $_, "Found $_";
+    }
+
+    is $zip->find(256), undef, 'Number not found';
+};
+
 done_testing;
