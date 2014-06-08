@@ -93,8 +93,8 @@ sub find {
 
     # we've stored the min/max bound of this sub-tree as we descend.  So we know
     # if we need to go back up the tree to search
-    return $self->up->find($find) if ($self->has_lt and $cmp->($self->lt, $find) < 0);
-    return $self->up->find($find) if ($self->has_gt and $cmp->($self->gt, $find) > 0);
+    return $self->up->find($find) if ($self->has_lt and $cmp->($self->lt, $find) <= 0);
+    return $self->up->find($find) if ($self->has_gt and $cmp->($self->gt, $find) >= 0);
 
     # otherwise, let's test to see if we're already at the element
     my $cmpd = $cmp->($self->head->key, $find) or return $self;

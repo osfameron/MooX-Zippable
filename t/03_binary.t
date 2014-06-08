@@ -38,7 +38,7 @@ subtest 'modify' => sub {
 
 subtest 'find' => sub {
     my $zip = tree->traverse;
-    for (20, 255, 1, 100) {
+    for (127, 128, 127, 20, 255, 1, 100, 128, 255, 128, 1, 127, 1) {
         $zip = $zip->find($_);
         is $zip->head->value, $_, "Found $_";
     }
