@@ -4,7 +4,7 @@ use Moo::Role;
 with 'MooX::Zippable';
 require MooX::Zipper::BinaryTree;
 
-requires 'left', 'right', 'has_left', 'has_right', 'value', 'cmp';
+requires 'left', 'right', 'has_left', 'has_right', 'key', 'cmp';
 
 sub traverse {
     my ($self, %args) = @_;

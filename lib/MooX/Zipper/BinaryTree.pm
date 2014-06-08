@@ -17,14 +17,14 @@ sub left {
     my $self = shift;
     $self->go('left')->but(
         defined $self->gt ? (gt => $self->gt) : (),
-        lt => $self->head->value
+        lt => $self->head->key
     );
 }
 
 sub right {
     my $self = shift;
     $self->go('right')->but(
-        gt => $self->head->value,
+        gt => $self->head->key,
         defined $self->lt ? (lt => $self->lt) : (),
     );
 }
@@ -97,7 +97,7 @@ sub find {
     return $self->up->find($find) if ($self->has_gt and $cmp->($self->gt, $find) > 0);
 
     # otherwise, let's test to see if we're already at the element
-    my $cmpd = $cmp->($self->head->value, $find) or return $self;
+    my $cmpd = $cmp->($self->head->key, $find) or return $self;
 
     # otherwise we can search down left or right subtree as appopriate
     if ($cmpd > 0 and $self->head->has_left) {

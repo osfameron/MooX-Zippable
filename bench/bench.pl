@@ -36,7 +36,7 @@ be marginally faster.
 
 =cut
 
-sub t1_exp { Tree->fromList( 10, 20, 30, 4..255 ) }
+sub t1_exp { [ 10, 20, 30, 4..255 ] }
 
 sub t1_zipper {
     return tree->traverse
@@ -65,9 +65,9 @@ sub t1_mutable_with_clone {
     return $tree;
 }
 
-is_deeply t1_zipper(), t1_exp();
-is_deeply t1_mutable(), t1_exp();
-is_deeply t1_mutable_with_clone(), t1_exp();
+is_deeply [t1_zipper->values], t1_exp();
+is_deeply [t1_mutable->values], t1_exp();
+is_deeply [t1_mutable_with_clone->values], t1_exp();
 
 cmpthese 1000 => {
     zipper => \&t1_zipper,
@@ -93,7 +93,7 @@ cloning the whole structure and modifying it.
 
 =cut
 
-sub t2_exp { Tree->fromList( 10, 2..254, 2550 ) }
+sub t2_exp { [ 10, 2..254, 2550 ] }
 
 sub t2_zipper {
     return tree->traverse
@@ -122,14 +122,40 @@ sub t2_mutable_with_clone {
     return $tree;
 }
 
-is_deeply t2_zipper(), t2_exp();
-is_deeply t2_mutable(), t2_exp();
-is_deeply t2_mutable_with_clone(), t2_exp();
+is_deeply [t2_zipper->values], t2_exp();
+is_deeply [t2_mutable->values], t2_exp();
+is_deeply [t2_mutable_with_clone->values], t2_exp();
 
 cmpthese 1000 => {
     zipper => \&t2_zipper,
     mutable => \&t2_mutable,
     mutable_c => \&t2_mutable_with_clone,
 };
+
+=head1 Task 3
+
+Multiply specific randomly accessed nodes by 10.  Compare with a hash.
+
+=head2 Results and analysis
+
+...
+
+=cut
+
+sub t3_exp { Tree->fromList( 1..20, 210, 220, 23..40, 410, 42..200, 2010, 202.. 255 ) }
+
+sub t3_zipper {
+    return tree->traverse
+        ->find(21)->call($mult10)
+        ->find(22)->call($mult10)
+        ->find(41)->call($mult10)
+        ->find(201)->call($mult10)
+        ->focus;
+}
+
+sub t3_mutable {
+    my $tree = tree;
+}
+
 
 done_testing;

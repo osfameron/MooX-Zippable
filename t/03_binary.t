@@ -33,7 +33,7 @@ subtest 'modify' => sub {
         ->next->call($mult10)
         ->next->call($mult10)
         ->focus;
-    is_deeply $tree, Tree->fromList( 10,20,30, 4..255 );
+    is_deeply [ $tree->values ], [ 10,20,30, 4..255 ];
 };
 
 subtest 'find' => sub {
