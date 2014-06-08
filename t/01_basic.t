@@ -150,4 +150,10 @@ subtest "Do block" => sub {
     
 };
 
+subtest "is_top" => sub {
+    my $zip = $struct->traverse;
+    ok $zip->is_top, 'is_top';
+    ok ! $zip->go('child')->is_top, 'child is not top';
+};
+
 done_testing;

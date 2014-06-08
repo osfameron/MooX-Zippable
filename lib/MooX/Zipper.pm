@@ -13,6 +13,7 @@ has dir => (
 
 has zip => (
     is => 'ro',
+    predicate => 'has_zip',
 );
 
 sub go {
@@ -64,8 +65,13 @@ sub up {
 
 sub top {
     my $self = shift;
-    return $self unless $self->zip;
+    return $self unless $self->has_zip;
     return $self->up->top;
+}
+
+sub is_top {
+    my $self = shift;
+    return ! $self->has_zip;
 }
 
 sub focus {
