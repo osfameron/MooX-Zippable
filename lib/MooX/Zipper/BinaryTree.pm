@@ -2,13 +2,15 @@ package MooX::Zipper::BinaryTree;
 use Moo;
 extends 'MooX::Zipper';
 
-has gt => (
-    is => 'ro',
-    predicate => 'has_gt',
-);
+# we store min/max bounds of subtree for benefit of -> find later
 has lt => (
     is => 'ro',
     predicate => 'has_lt',
+);
+
+has gt => (
+    is => 'ro',
+    predicate => 'has_gt',
 );
 
 sub left {
@@ -82,17 +84,30 @@ sub prev {
 
 sub find {
     my ($self, $find) = @_;
+
+    # Typically cmp routines are written in terms of $a/$b (which is a bit inconvenient
+    # with packages) or @_[0..1]  So instead of doing a method call, we get this ref with
+    # ->can, and subsequently call it as a *subroutine* ref, rather than a method.
+
     my $cmp = $self->head->can('cmp') || sub { $_[0] cmp $_[1] };
+
+    # we've stored the min/max bound of this sub-tree as we descend.  So we know
+    # if we need to go back up the tree to search
     return $self->up->find($find) if ($self->has_lt and $cmp->($self->lt, $find) < 0);
     return $self->up->find($find) if ($self->has_gt and $cmp->($self->gt, $find) > 0);
 
+    # otherwise, let's test to see if we're already at the element
     my $cmpd = $cmp->($self->head->value, $find) or return $self;
+
+    # otherwise we can search down left or right subtree as appopriate
     if ($cmpd > 0 and $self->head->has_left) {
         return $self->left->find($find);
     }
     if ($cmpd < 0 and $self->head->has_right) {
         return $self->right->find($find);
     }
+
+    # element was not found
     return undef;
 }
 
