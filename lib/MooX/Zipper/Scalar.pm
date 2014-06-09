@@ -3,7 +3,7 @@ use Carp qw(croak);
 use Moo;
 extends 'MooX::Zipper';
 with 'MooX::Zippable';
-use MooX::Zippable::Autobox;
+use MooX::Zippable::Autobox conditional => 1;
 use Scalar::Util 'reftype';
 
 sub go { croak "Can't traverse a scalar" }

@@ -158,4 +158,6 @@ subtest "is_top" => sub {
     ok $zip->go('child')->go('child')->up(2)->is_top, 'up(2) gets us back to top';
 };
 
+ok !exists $INC{'autobox.pm'}, 'autobox has not been magically used';
+
 done_testing;

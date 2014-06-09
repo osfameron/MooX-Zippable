@@ -1,7 +1,7 @@
 package MooX::Zipper;
 use Moo;
 with 'MooX::But';
-use MooX::Zippable::Autobox;
+use MooX::Zippable::Autobox conditional=>1;
 
 has head => (
     is => 'ro',

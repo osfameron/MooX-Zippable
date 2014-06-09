@@ -2,7 +2,7 @@ package MooX::Zipper::Hash;
 use Moo;
 extends 'MooX::Zipper';
 with 'MooX::Zippable';
-use MooX::Zippable::Autobox;
+use MooX::Zippable::Autobox conditional => 1;
 
 sub go {
     my ($self, $dir) = @_;
