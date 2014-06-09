@@ -41,6 +41,32 @@ Alternative syntax:
         ->set(foo => 2)
         });
 
+=head1 WARNING
+
+This module is designed to help you write immutable code, but Perl is designed
+to give you as much rope as you need to hang yourself.
+
+If you have two objects that are the same:
+
+    my $a = $b;
+
+Or even two objects that share child references:
+
+    my $a = $b->traverse->go('left')->set(foo=>1)->focus;
+
+And then I<mutate> a value in C<$a>:
+
+    $a->{right}{bar} = 3;
+
+Then you may have also overridden the value in C<$b>.  Some possible solutions to this
+problem are:
+
+    * don't do that.  only use Zippable's methods to safely return copied data.
+    * check out various CPAN modules such as Readonly to lock down your data
+      structures to keep you honest.
+    * clone critical objects (or sub-trees) where there is a risk of data being
+      mutated.
+
 =head1 METHODS
 
 =head2 C<but( $attribute =E<gt> $value, ... )>
