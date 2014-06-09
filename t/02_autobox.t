@@ -133,6 +133,35 @@ subtest "Array" => sub {
     my $arr4 = $arr->doTraverse( sub { $_->go('arr')->delete(2) } );
     is_deeply $arr4->arr, [1,2,4,5];
 
+    subtest 'Pop' => sub {
+        my $arr = [1,2,3];
+        is_deeply $arr->traverse->pop->focus, [1,2];
+
+        my ($elem, $zip) = $arr->traverse->pop;
+        is $elem, 3;
+        is_deeply $zip->focus, [1,2];
+    };
+
+    subtest 'Shift' => sub {
+        my $arr = [1,2,3];
+        is_deeply $arr->traverse->shift->focus, [2,3];
+
+        my ($elem, $zip) = $arr->traverse->shift;
+        is $elem, 1;
+        is_deeply $zip->focus, [2,3];
+    };
+
+    subtest 'sort' => sub {
+        my $arr = ['foo', 'bar', 'baz'];
+        is_deeply $arr->traverse->sort->focus, [qw/ bar baz foo /];
+
+        my $arr2 = [ 1, 10, 5, 2, 8, 3, 9, 4, 7, 6 ];
+        is_deeply $arr2->traverse->sort(sub { $_[0] <=> $_[1] })->focus, [1..10];
+    };
+};
+
+subtest 'Method callback on scalar' => sub {
+    is 42->traverse->call( sub { $_[0] + 1 })->focus, 43;
 };
 
 done_testing;

@@ -73,19 +73,14 @@ problem are:
 
 Returns a copy of the object, but with the specified attributes overridden.
 
-By default we just call C<-E<gt>new(%$self, ...)> which is a shallow copy.
-This does mean that objects will share array/hash references!  This is
-considered a feature (you're writing purely functional code, so won't be
-destructively updating those references, right?)
-
-If that restriction hurts you, then you may wish to override C<but> (or port
-the feature from L<MooseX::Attribute::ChainedClone> which supports finer
-grained cloning).
+By default we provide the implemenation in L<MooX::But> which is a I<very
+simple> shallow hash copy. See the docs for caveats and alternatives.  You are
+welcome to override this!
 
 =head2 traverse
 
-Returns a I<zipper> on this object.  You can use the zipper to descend into
-child objects and modify them.
+Returns a L<MooX::Zipper> focused on this object.  You can use the zipper to
+descend into child objects and modify them.
 
 If we were using standard Moo with read-write accessors, we might update
 an object like this:
@@ -130,61 +125,13 @@ this we can rewrite the previous expression as:
         ->set( telephone => '01234 567 890' )
         });
 
-=head2 Zipper methods
-
-All zippers have the following methods
-
-=head3 C<$zipper-E<gt>go($accessor)>
-
-Traverses to an accessor of the object, keeping a breadcrumb trail back to the previous
-object, so that it knows how to zip all the data back up.
-
-=head3 C<$zipper-E<gt>set($accessor =E<gt> $value)>
-
-Seemingly "update" a field of the object.  In fact, behind the scenes, the zipper is
-calling C<but> and returning a copy of the object with the values updated.
-
-=head3 C<$zipper-E<gt>call($method =E<gt> @args)>
-
-Assumes that C<$method> returns a copy of the same object.  As with C<set>, you can
-imagine that C<call> is updating the object in place, but in fact behind the scenes
-everything is immutable.  (In fact, C<set> is itself implemented as:
-C<$zipper-E<gt>call( but => $accessor => $value )>)
-
-=head3 C<$zipper-E<gt>up>
-
-Go back up a level
-
-=head3 C<$zipper-E<gt>top>
-
-Go back to the top of the object.  The returned value is I<still> a zipper!  To
-return the object instead, use C<focus>
-
-=head3 C<$zipper-E<gt>focus>
-
-Return to the top of the zipper, zipping up all the data you've changed using
-C<call> and C<set>, and return the modified copy of the object.
-
-=head3 Other zipper methods
-
-It is possible to create zippers for specific classes.  Examples are supplied for
-perl's native Hash, Array, and Scalar types, using autobox.  See the classes for
-L<MooX::Zipper::Native>, L<MooX::Zipper::Hash>, L<MooX::Zipper::Array>,
-L<MooX::Zipper::Scalar> for details.
-
-=head1 CAVEATS
-
-    18:46 <@haarg> and you'll want to document the caveats re: but
-    18:46 <@osfameron> which caveats?
-    18:47 <@haarg> such as only working with hashref based objects, not supporting things with init_arg
-    18:47 <@haarg> re-applying coercions
-    18:48 <@haarg> running things through BUILDARGS again
-
-See https://github.com/haarg/MooX-Clone/ for a Moo'ier implementation of ->but!
-
 =head1 SEE ALSO
 
 =over 4
+
+=item *
+
+The zipper methods in L<MooX::Zipper>
 
 =item *
 
@@ -222,9 +169,15 @@ sub doTraverse {
     }
 }
 
+=head1 CONTRIBUTIONS
+
+haarg pointed out caveats with the implementation of C<but> and proposed L<MooX::CloneWith>
+
+dysfun provided valuable feedback and suggested the native zipper types.
+
 =head1 AUTHOR and LICENCE
 
-osfameron@cpan.org
+(C) 2014 osfameron@cpan.org
 
 Licensed under the same terms as Perl itself.
 
