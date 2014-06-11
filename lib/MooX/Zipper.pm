@@ -13,7 +13,7 @@ use Moo;
 with 'MooX::But';
 use MooX::Zippable::Autobox conditional=>1;
 
-has head => (
+has focus => (
     is => 'ro',
 );
 
@@ -21,16 +21,21 @@ has dir => (
     is => 'ro',
 );
 
-has zip => (
+has parent => (
     is => 'ro',
-    predicate => 'has_zip',
+    predicate => 'has_parent',
 );
+
+sub traverse {
+    my ($self, $dir) = @_;
+    return $self->focus->$dir;
+}
 
 sub go {
     my ($self, $dir) = @_;
-    return $self->head->$dir->traverse(
+    return $self->traverse($dir)->zipper(
         dir => $dir,
-        zip => $self,
+        parent => $self,
     );
 }
 
@@ -46,21 +51,21 @@ sub dive {
 sub call {
     my ($self, $method, @args) = @_;
     return $self->but(
-        head => $self->head->$method(@args),
+        focus => $self->focus->$method(@args),
     );
 }
 
 sub set {
     my ($self, %args) = @_;
     return $self->but(
-        head => $self->head->but(%args)
+        focus => $self->focus->but(%args)
     );
 }
 
 sub replace {
     my ($self, $new) = @_;
     return $self->but(
-        head => $new,
+        focus => $new,
     );
 }
 
@@ -70,9 +75,9 @@ sub up {
     
     my $zip = $self;
     for (1..$count) {
-        $zip = $zip->zip->but(
-            head => $zip->zip->head->but(
-                $zip->dir => $zip->head
+        $zip = $zip->parent->but(
+            focus => $zip->parent->focus->but(
+                $zip->dir => $zip->focus
             ),
         );
     }
@@ -81,26 +86,26 @@ sub up {
 
 sub top {
     my $self = shift;
-    return $self unless $self->has_zip;
+    return $self unless $self->has_parent;
     return $self->up->top;
 }
 
 sub is_top {
     my $self = shift;
-    return ! $self->has_zip;
+    return ! $self->has_parent;
 }
 
-sub focus {
+sub unzip {
     my $self = shift;
-    $self->top->head;
+    $self->top->focus;
 }
 
 sub do {
     my ($self, $code) = @_;
-    for ($self->head->traverse) {
+    for ($self->focus->zipper) {
         # localises to $_
         return $self->but(
-            head => $code->($_)->focus,
+            focus => $code->($_)->unzip,
         );
     }
 }
@@ -133,9 +138,9 @@ Go back up a level
 =head2 C<$zipper-E<gt>top>
 
 Go back to the top of the object.  The returned value is I<still> a zipper!  To
-return the object instead, use C<focus>
+return the object instead, use C<unzip>
 
-=head2 C<$zipper-E<gt>focus>
+=head2 C<$zipper-E<gt>unzip>
 
 Return to the top of the zipper, zipping up all the data you've changed using
 C<call> and C<set>, and return the modified copy of the object.

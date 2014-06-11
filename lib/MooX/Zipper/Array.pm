@@ -5,7 +5,7 @@ MooX::Zipper::Array - a zipper on Array references
 =head1 SYNOPSIS
 
     use MooX::Zippable::Autobox;
-    my $zipper = [ 1,2,3 ]->traverse;
+    my $zipper = [ 1,2,3 ]->zip;
 
 =head1 METHODS
 
@@ -35,9 +35,9 @@ In scalar context, returns a zipper onto the array with the final element
 popped from the end.  In list context, returns the element and the zipper:
 
     use MooX::Zippable::Autobox;
-    my $x = [1,2,3]->traverse->pop->focus; # [1,2]
+    my $x = [1,2,3]->zip->pop->focus; # [1,2]
 
-    my $y = [1,2,3]->traverse;
+    my $y = [1,2,3]->zip;
     my ($elem, $y2) = $y->pop; # 3, and a zipper onto [1,2]
 
 =head2 C<unshift>
@@ -51,9 +51,9 @@ shifted from the beginning.  In list context, returns the element and the
 zipper:
 
     use MooX::Zippable::Autobox;
-    my $x = [1,2,3]->traverse->shift->focus; # [2,3]
+    my $x = [1,2,3]->zip->shift->focus; # [2,3]
 
-    my $y = [1,2,3]->traverse;
+    my $y = [1,2,3]->zip;
     my ($elem, $y2) = $y->shift; # 1, and a zipper onto [2,3]
 
 =head2 C<reverse>
@@ -81,83 +81,80 @@ extends 'MooX::Zipper';
 with 'MooX::Zippable';
 use MooX::Zippable::Autobox conditional => 1;
 
-sub go {
+sub traverse {
     my ($self, $dir) = @_;
-    return $self->head->[$dir]->traverse(
-        dir => $dir,
-        zip => $self,
-    );
+    return $self->focus->[$dir];
 }
 
 sub push {
     my ($self, @items) = @_;
     return $self->but(
-        head => [ @{$self->head}, @items ]
+        focus => [ @{$self->focus}, @items ]
     )
 }
 
 sub unshift {
     my ($self, @items) = @_;
     return $self->but(
-        head => [ @items, @{$self->head} ]
+        focus => [ @items, @{$self->focus} ]
     )
 }
 
 # NB, possibly rename hash's unset to delete also?
 sub delete {
     my ($self, @keys) = @_;
-    my @head = @{$self->head};
+    my @focus = @{$self->focus};
     for my $k (sort { $b <=> $a } @keys) {
-        splice @head, $k, 1;
+        splice @focus, $k, 1;
     }
     return $self->but(
-        head => \@head,
+        focus => \@focus,
     );
 }
 
 sub reverse {
     my $self = shift;
     return $self->but(
-        head => [ reverse @{$self->head} ]
+        focus => [ reverse @{$self->focus} ]
     );
 }
 
 sub mapDo {
     my ($self, $code) = @_;
-    my @head = map { 
-            local $_ = $_->traverse;            
+    my @focus = map { 
+            local $_ = $_->parent;            
             $code->($_)->focus;
         } 
-        @{ $self->head };
+        @{ $self->focus };
 
     return $self->but(
-        head => \@head,
+        focus => \@focus,
     );
 }
 
 sub pop {
     my $self = shift;
-    my @head = @{ $self->head };
-    my $elem = pop @head,
-    my $zip = $self->but( head => \@head );
+    my @focus = @{ $self->focus };
+    my $elem = pop @focus,
+    my $zip = $self->but( focus => \@focus );
     return wantarray ? ($elem, $zip) : $zip;
 }
 
 sub shift {
     my $self = shift;
-    my @head = @{ $self->head };
-    my $elem = shift @head,
-    my $zip = $self->but( head => \@head );
+    my @focus = @{ $self->focus };
+    my $elem = shift @focus,
+    my $zip = $self->but( focus => \@focus );
     return wantarray ? ($elem, $zip) : $zip;
 }
 
 sub sort {
     my ($self, $sub) = @_;
-    my @head = @{ $self->head };
-    @head = $sub ?
-        sort { $sub->($a, $b) } @head
-        : sort @head;
-    return $self->but( head => \@head );
+    my @focus = @{ $self->focus };
+    @focus = $sub ?
+        sort { $sub->($a, $b) } @focus
+        : sort @focus;
+    return $self->but( focus => \@focus );
 }
 
 1;

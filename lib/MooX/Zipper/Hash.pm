@@ -5,7 +5,7 @@ MooX::Zipper::Hash - a zipper on Hash references
 =head1 SYNOPSIS
 
     use MooX::Zippable::Autobox;
-    my $zipper = { foo => 1 }->traverse;
+    my $zipper = { foo => 1 }->zip;
 
 =head1 METHODS
 
@@ -34,22 +34,19 @@ extends 'MooX::Zipper';
 with 'MooX::Zippable';
 use MooX::Zippable::Autobox conditional => 1;
 
-sub go {
+sub traverse {
     my ($self, $dir) = @_;
-    return $self->head->{$dir}->traverse(
-        dir => $dir,
-        zip => $self,
-    );
+    return $self->focus->{$dir};
 }
 
 sub unset {
     my ($self, @keys) = @_;
-    my %hash = %{ $self->head };
+    my %hash = %{ $self->focus };
 	foreach my $k (@keys) {
 	  delete $hash{$k};
 	}
 	return $self->but(
-        head => \%hash,
+        focus => \%hash,
     );
 }
 

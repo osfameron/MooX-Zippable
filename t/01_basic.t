@@ -65,13 +65,13 @@ subtest "Sanity check - the current way" => sub {
 
 subtest "With zipper" => sub {
 
-    my $struct = $struct->traverse
+    my $struct = $struct->zip
         # ->set(number => 16)
         ->call(add_number => 15)
         ->go('child')->call(add_number => 10)
         ->go('child')->call(add_number => 5)
         ->go('child')->call(add_number => 1)
-        ->focus;
+        ->unzip;
 
     is_deeply $struct, Foo->new(
         number => 16,
@@ -96,13 +96,13 @@ subtest "Test callback" => sub {
       );
 	};
 
-    my $struct = $struct->traverse
+    my $struct = $struct->zip
         # ->set(number => 16)
         ->call($add_number => 15)
         ->go('child')->call($add_number => 10)
         ->go('child')->call($add_number => 5)
         ->go('child')->call($add_number => 1)
-        ->focus;
+        ->unzip;
 
     is_deeply $struct, Foo->new(
         number => 16,
@@ -119,17 +119,17 @@ subtest "Test callback" => sub {
 };
 
 subtest "Do block" => sub {
-    my $struct1 = $struct->traverse
+    my $struct1 = $struct->zip
         ->dive('child', 'child')
-        ->do( sub { $_->go('child')->call(add_number => 1) } ) # implicit focus
+        ->do( sub { $_->go('child')->call(add_number => 1) } ) # implicit unzip
         ->call(add_number => 10)
-        ->focus;
+        ->unzip;
 
-    my $struct2 = $struct->doTraverse(sub {
+    my $struct2 = $struct->doZipper(sub {
         $_->dive('child', 'child')
         ->call(add_number => 10)
         ->go('child')->call(add_number => 1 )
-        # look ma, no ->focus!
+        # look ma, no ->unzip!
         });
 
     my $expected = Foo->new(
@@ -145,13 +145,13 @@ subtest "Do block" => sub {
         )
     );
 
-    is_deeply $struct1, $expected, 'implicit focus for do block';
-    is_deeply $struct2, $expected, 'implicit focus for doTraverse block';
+    is_deeply $struct1, $expected, 'implicit unzip for do block';
+    is_deeply $struct2, $expected, 'implicit unzip for doZipper block';
     
 };
 
 subtest "is_top" => sub {
-    my $zip = $struct->traverse;
+    my $zip = $struct->zip;
     ok $zip->is_top, 'is_top';
     ok ! $zip->go('child')->is_top, 'child is not top';
 

@@ -153,18 +153,34 @@ package MooX::Zippable;
 use Moo::Role;
 with 'MooX::But';
 require MooX::Zipper;
+use Attribute::Memoize;
 
-sub traverse {
-    my ($self, %args) = @_;
 
-    return MooX::Zipper->new( head => $self, %args );
+sub zip {
+    my ($self, @roles) = @_;
+    return $self->zipper(
+        zipper_class => __PACKAGE__->get_zipper_class(@roles)
+    );
 }
 
-sub doTraverse {
+sub zipper {
+    my ($self, %args) = @_;
+
+    return ($args{zipper_class} || 'MooX::Zipper')
+        ->new( focus => $self, %args );
+}
+
+sub get_zipper_class :Memoize {
+    my ($class, @roles) = @_;
+    return 'MooX::Zipper' unless @roles;
+    return $class->create_class_with_roles('MooX::Zipper', @roles);
+}
+
+sub doZipper {
     my ($self, $code) = @_;
-    for ($self->traverse) {
+    for ($self->zipper) {
         my $zipper = $code->($_);
-        my $value = $zipper->focus;
+        my $value = $zipper->unzip;
         return $value;
     }
 }

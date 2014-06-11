@@ -17,14 +17,14 @@ sub left {
     my $self = shift;
     $self->go('left')->but(
         defined $self->gt ? (gt => $self->gt) : (),
-        lt => $self->head->key
+        lt => $self->focus->key
     );
 }
 
 sub right {
     my $self = shift;
     $self->go('right')->but(
-        gt => $self->head->key,
+        gt => $self->focus->key,
         defined $self->lt ? (lt => $self->lt) : (),
     );
 }
@@ -35,7 +35,7 @@ sub last { $_[0]->top->rightmost }
 sub leftmost {
     my $self = shift;
     my $zip = $self;
-    while ($zip->head->has_left) {
+    while ($zip->focus->has_left) {
         $zip = $zip->left;
     }
     return $zip;
@@ -44,7 +44,7 @@ sub leftmost {
 sub rightmost {
     my $self = shift;
     my $zip = $self;
-    while ($zip->head->has_right) {
+    while ($zip->focus->has_right) {
         $zip = $zip->right;
     }
     return $zip;
@@ -52,7 +52,7 @@ sub rightmost {
 
 sub next {
     my $self = shift;
-    return $self->right->leftmost if $self->head->has_right;
+    return $self->right->leftmost if $self->focus->has_right;
     return $self->up if $self->dir eq 'left';
     # the complex case, where we have a right parent.
     
@@ -60,7 +60,7 @@ sub next {
 
     while ($zip->dir eq 'right') {
         $zip = $zip->up;
-        return unless $zip->zip; # e.g. we are back at top
+        return unless $zip->parent; # e.g. we are back at top
     }
 
     return $zip->up; # on a left path;
@@ -68,7 +68,7 @@ sub next {
 
 sub prev {
     my $self = shift;
-    return $self->left->rightmost if $self->head->has_left;
+    return $self->left->rightmost if $self->focus->has_left;
     return $self->up if $self->dir eq 'right';
     # the complex case, where we have a left parent.
     
@@ -76,7 +76,7 @@ sub prev {
 
     while ($zip->dir eq 'left') {
         $zip = $zip->up;
-        return unless $zip->zip; # e.g. we are back at top
+        return unless $zip->has_parent; # e.g. we are back at top
     }
 
     return $zip->up; # on a right path;
@@ -89,7 +89,7 @@ sub find {
     # with packages) or @_[0..1]  So instead of doing a method call, we get this ref with
     # ->can, and subsequently call it as a *subroutine* ref, rather than a method.
 
-    my $cmp = $self->head->can('cmp') || sub { $_[0] cmp $_[1] };
+    my $cmp = $self->focus->can('cmp') || sub { $_[0] cmp $_[1] };
 
     # we've stored the min/max bound of this sub-tree as we descend.  So we know
     # if we need to go back up the tree to search
@@ -97,13 +97,13 @@ sub find {
     return $self->up->find($find) if ($self->has_gt and $cmp->($self->gt, $find) >= 0);
 
     # otherwise, let's test to see if we're already at the element
-    my $cmpd = $cmp->($self->head->key, $find) or return $self;
+    my $cmpd = $cmp->($self->focus->key, $find) or return $self;
 
     # otherwise we can search down left or right subtree as appopriate
-    if ($cmpd > 0 and $self->head->has_left) {
+    if ($cmpd > 0 and $self->focus->has_left) {
         return $self->left->find($find);
     }
-    if ($cmpd < 0 and $self->head->has_right) {
+    if ($cmpd < 0 and $self->focus->has_right) {
         return $self->right->find($find);
     }
 

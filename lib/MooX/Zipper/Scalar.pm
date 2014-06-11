@@ -5,7 +5,7 @@ MooX::Zipper::Scalar - a zipper on Scalar values
 =head1 SYNOPSIS
 
     use MooX::Zippable::Autobox;
-    my $zipper = 42->traverse;
+    my $zipper = 42->zip;
 
 =head1 METHODS
 
@@ -20,7 +20,7 @@ These make no sense, and so raise an error.  However C<replace> will work.
 
 While you can't call a method on a scalar, you can supply a coderef.
 
-    42->traverse->call( sub { $_[0] + 1 } )->focus; # 43
+    42->zip->call( sub { $_[0] + 1 } )->focus; # 43
 
 =cut
 
@@ -32,7 +32,7 @@ with 'MooX::Zippable';
 use MooX::Zippable::Autobox conditional => 1;
 use Scalar::Util 'reftype';
 
-sub go { croak "Can't traverse a scalar" }
+sub traverse { croak "Can't traverse a scalar" }
 
 sub set { croak "Can't set a scalar key, perhaps you wanted to ->replace?" }
 
