@@ -150,19 +150,22 @@ Zippers in Haskell. L<http://learnyouahaskell.com/zippers> for example.
 =cut
 
 package MooX::Zippable;
+use Module::Runtime 'use_module';
 
 use Package::Variant
     importing => ['Moo::Role'],
-    subs => [ qw(has with) ];
+    subs => [ qw(with around) ];
 
 sub make_variant {
     my ($class, $target_package, %args) = @_;
 
-    with 'MooX::Zippable::Base';
-    has '+zipper_class' => (
-        is => 'ro',
-        default => $args{zipper_class},
-    );
+    my $base = 'MooX::Zippable::Base';
+    with $base;
+
+    my $zipper_class = $args{zipper_class} || $base->zipper_class;
+    my $zipper_module = use_module $zipper_class;
+    around zipper_module => sub { $zipper_module }; # override
+    # constant->import::into($target_package, zipper_module => $zipper_module);
 };
 
 =head1 CONTRIBUTIONS

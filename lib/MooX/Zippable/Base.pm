@@ -1,20 +1,9 @@
 package MooX::Zippable::Base;
 use Moo::Role;
 with 'MooX::But';
-use Module::Runtime 'use_module';
+require MooX::Zipper;
 
-has zipper_class => (
-    is => 'ro',
-    default => 'MooX::Zipper',
-);
-
-has zipper_module => (
-    is => 'lazy',
-    default => sub {
-        my $self = shift;
-        use_module $self->zipper_class;
-    },
-);
+sub zipper_module { 'MooX::Zipper' }
 
 sub traverse {
     my ($self, %args) = @_;
