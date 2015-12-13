@@ -5,7 +5,7 @@ use Data::Dumper;
 {
     package Foo;
     use Moo;
-    with 'MooX::Zippable';
+    with 'MooX::Zippable::Base';
 
     has number => (
         is => 'ro',
@@ -74,12 +74,20 @@ subtest "With zipper" => sub {
         ->focus;
 
     is_deeply $struct, Foo->new(
+        zipper_class => 'MooX::Zipper',
+        zipper_module => 'MooX::Zipper',
         number => 16,
         child => Foo->new(
+            zipper_class => 'MooX::Zipper',
+            zipper_module => 'MooX::Zipper',
             number => 12,
             child => Foo->new(
+                zipper_class => 'MooX::Zipper',
+                zipper_module => 'MooX::Zipper',
                 number => 8,
                 child => Foo->new(
+                    zipper_class => 'MooX::Zipper',
+                    zipper_module => 'MooX::Zipper',
                     number => 5
                 )
             )
@@ -106,11 +114,15 @@ subtest "Test callback" => sub {
 
     is_deeply $struct, Foo->new(
         number => 16,
+        zipper_module => 'MooX::Zipper',
         child => Foo->new(
+            zipper_module => 'MooX::Zipper',
             number => 12,
             child => Foo->new(
+                zipper_module => 'MooX::Zipper',
                 number => 8,
                 child => Foo->new(
+                    zipper_module => 'MooX::Zipper',
                     number => 5
                 )
             )
@@ -133,12 +145,16 @@ subtest "Do block" => sub {
         });
 
     my $expected = Foo->new(
+        zipper_module => 'MooX::Zipper',
         number => 1,
         child => Foo->new(
+            zipper_module => 'MooX::Zipper',
             number => 2,
             child => Foo->new(
-                number => 13,
+                zipper_module => 'MooX::Zipper',
+                number => 15,
                 child => Foo->new(
+                    zipper_module => 'MooX::Zipper',
                     number => 5,
                 )
             )

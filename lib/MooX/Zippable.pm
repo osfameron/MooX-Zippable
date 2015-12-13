@@ -150,24 +150,20 @@ Zippers in Haskell. L<http://learnyouahaskell.com/zippers> for example.
 =cut
 
 package MooX::Zippable;
-use Moo::Role;
-with 'MooX::But';
-require MooX::Zipper;
 
-sub traverse {
-    my ($self, %args) = @_;
+use Package::Variant
+    importing => ['Moo::Role'],
+    subs => [ qw(has with) ];
 
-    return MooX::Zipper->new( head => $self, %args );
-}
+sub make_variant {
+    my ($class, $target_package, %args) = @_;
 
-sub doTraverse {
-    my ($self, $code) = @_;
-    for ($self->traverse) {
-        my $zipper = $code->($_);
-        my $value = $zipper->focus;
-        return $value;
-    }
-}
+    with 'MooX::Zippable::Base';
+    has '+zipper_class' => (
+        is => 'ro',
+        default => $args{zipper_class},
+    );
+};
 
 =head1 CONTRIBUTIONS
 
